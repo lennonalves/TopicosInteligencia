@@ -1,13 +1,11 @@
-# Gerenciador de Congressos
+# Tópicos IA
 ---
 Desenvolvido por: Lennon Alves
-Contribuições: Victor Ambiel
 
 ---
 
-## Disciplinas:
- * Analise e Projetos Orientados à Objetos
- * Tópicos Avançados em Ciência da Computação
+## Disciplina(s):
+ * Tópicos Avançados em Inteligência Artificial
  
 ----
 
