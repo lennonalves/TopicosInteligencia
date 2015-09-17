@@ -20,8 +20,6 @@ import java.util.Scanner;
  * @author lennon
  */
 
-/* current time news */
-
 public class Principal {
     static int max = 2000;
     
@@ -29,6 +27,7 @@ public class Principal {
         /* declaracoes */
         String data = null;
         Casos novocaso = new Casos();
+        long tempoinicial, tempofinal;
         /* vetores fixos */
         ArrayList<Casos> listacasos = new ArrayList(); /* array de casos */
         double[][] diferencas = new double[max][2] /* vetor com somas das diferenças */;
@@ -40,12 +39,17 @@ public class Principal {
         /* funcoes */
         lerArquivo(data, listacasos);
         imprimeLista(listacasos);
-        //insereCaso(novocaso);
+        insereCaso(novocaso);
+            tempoinicial = System.currentTimeMillis(); /* captura tempo inicial */
         //filtragem(listacasos, filtro);
-        //comparaSequencial(listacasos, novocaso, diferencas); /* listacasos ou filtro */
-        //ordenaVetor(listacasos, diferencas); /* listacasos ou filtro */
-        //listaSimilar(listacasos, diferencas);
-        casoAleatorio(listacasos, 10 /* quantidade de casos */);
+        comparaSequencial(listacasos, novocaso, diferencas); /* listacasos ou filtro */
+            tempofinal = System.currentTimeMillis(); /* captura tempo final */
+        ordenaVetor(listacasos, diferencas); /* listacasos ou filtro */
+        listaSimilar(listacasos, diferencas, 10); /* tamanho da lista de similaridade */
+        adaptacaoComposicional(listacasos, novocaso, diferencas, 10); /* tamanho da lista de similaridade */
+        //casoAleatorio(listacasos, 10 /* quantidade de casos */);
+        
+        System.out.println("Tempo de execução da recuperação: " + (tempofinal - tempoinicial) + " milisegundos.");
     }
     
     public static void imprimeLista(ArrayList<Casos> listacasos) {
@@ -55,7 +59,7 @@ public class Principal {
     }
     
     public static void lerArquivo(String data, ArrayList<Casos> listacasos) throws FileNotFoundException, IOException {
-        File file = new File("C:/Users/lennon/Documents/NetBeansProjects/TopicosInteligencia/src/RBC/cmc.data.testes.txt");
+        File file = new File("C:/Users/lennon/Documents/NetBeansProjects/TopicosInteligencia/src/RBC/cmc.data.completa.txt");
         BufferedReader reader;
         try (FileReader fileReader = new FileReader(file)) {
             reader = new BufferedReader(fileReader);
@@ -83,10 +87,10 @@ public class Principal {
                 if (validaCaso(casolido) == true) {
                     listacasos.add(casolido);
                 } else {
-                    System.out.println("Caso inválido, leitura não realizada.");
+                    System.out.println("\nCaso inválido, leitura não realizada.\n");
                 }
             }
-            System.out.println("Leitura de " + listacasos.size() + " caso(s) realizada com sucesso.");
+            System.out.println("Leitura de " + listacasos.size() + " caso(s) realizada com sucesso.\n");
         }
         reader.close();
     }
@@ -97,7 +101,7 @@ public class Principal {
         boolean casook = false;
         
         do {
-            System.out.println("Insira um novo caso.");
+            System.out.println("\nInsira um novo caso.\n");
 
             System.out.println("Idade da esposa: ");
             novocaso.setIdademulher(scanner.nextInt());
@@ -131,10 +135,10 @@ public class Principal {
             
             /* imprimir verificacao do caso inserido */
             if (validaCaso(novocaso) == true) {
-                System.out.println("Caso inserido: " + novocaso);
+                System.out.println("\nCaso inserido: " + novocaso + "\n");
                 casook = true;
             } else  {
-                System.out.println("Caso inválido, leitura não realizada.");
+                System.out.println("\nCaso inválido, leitura não realizada.\n");
                 casook = false;
             }
         } while (casook == false);
@@ -183,13 +187,112 @@ public class Principal {
         }
     }
 
-    public static void listaSimilar(ArrayList<Casos> listacasos, double[][] diferencas) {
-        System.out.println("Casos mais similares.");
+    public static void listaSimilar(ArrayList<Casos> listacasos, double[][] diferencas, int tamanho) {
+        System.out.println("Casos mais similares:\n");
         System.out.println("Caso [" + (int) diferencas[0][0] + "]: " + diferencas[0][1] + " (mais similar)");
-        for (int i = 1; i < listacasos.size(); i++) {
+        System.out.println("Método contraceptivo: " + retornaResposta(listacasos, (int) diferencas[0][0]) + "\n");
+        for (int i = 1; i < tamanho; i++) {
             System.out.println("Caso [" + (int) diferencas[i][0] + "]: " + diferencas[i][1]);
+            System.out.println("Método contraceptivo: " + retornaResposta(listacasos, (int) diferencas[0][0]) + "\n");
         }
-    }    
+    }
+    
+    public static void adaptacaoComposicional(ArrayList<Casos> listacasos, Casos novocaso, double[][] diferencas, int tamanho) {
+        int vnaoutilizado = 0, vlongoprazo = 0, vcurtoprazo = 0, metodo = 0;
+        for (int i = 0; i < tamanho; i++) {
+            if (listacasos.get(i).getMetodo() == 1) {
+                vnaoutilizado += 1;
+            }
+            if (listacasos.get(i).getMetodo() == 2) {
+                vlongoprazo += 1;
+            }
+            if (listacasos.get(i).getMetodo() == 3) {
+                vcurtoprazo += 1;
+            }
+        }
+        
+        if (vnaoutilizado >= vlongoprazo && vnaoutilizado >= vcurtoprazo) {
+            metodo = 1; /* nao utilizado */
+        }
+        if (vlongoprazo >= vnaoutilizado && vlongoprazo >= vcurtoprazo) {
+            metodo = 2; /* longo prazo */
+        }
+        if (vcurtoprazo >= vnaoutilizado && vcurtoprazo >= vlongoprazo) {
+            metodo = 3; /* curto prazo */
+        }
+        
+        revisao(novocaso, metodo);
+        retencao(listacasos, novocaso, metodo);
+    }
+    
+    public static void revisao(Casos novocaso, int metodo) {
+        /* regra 01 */
+        if (novocaso.getEmpregomulher() == 0 && novocaso.getNumerocriancas() >= 2) {
+            System.out.println("Quando a esposa possui dois ou mais filhos e não está trabalhando: ");
+            System.out.println("Método da adaptação: " + retornaMetodo(metodo) + " Método sugerido: " + retornaMetodo(2));
+        }
+        /* regra 02 */
+        if (novocaso.getEducacaomulher() >= 3 && novocaso.getEmpregomulher() == 1) {
+            System.out.println("Quando a esposa possui educação regular ou alta e está trabalhando: ");
+            System.out.println("Método da adaptação: " + retornaMetodo(metodo) + " Método sugerido: " + retornaMetodo(1));
+        }
+        /* regra 03 */
+        if (novocaso.getIdademulher() >= 30 && novocaso.getEducacaomulher()>= 3) {
+            System.out.println("Quando a esposa tem mais do que 30 anos e educação regular ou alta: ");
+            System.out.println("Método da adaptação: " + retornaMetodo(metodo) + " Método sugerido: " + retornaMetodo(1));
+        }
+        /* regra 04 */
+        if (novocaso.getEducacaohomem() <= 2 && novocaso.getEducacaomulher()<= 2) {
+            System.out.println("Quando a educação do marido e da esposa são baixa ou média: ");
+            System.out.println("Método da adaptação: " + retornaMetodo(metodo) + " Método sugerido: " + retornaMetodo(2));
+        }
+        /* regra 05 */
+        if (novocaso.getNumerocriancas() == 1 && (novocaso.getQualidadevida() >= 2 && novocaso.getQualidadevida() <= 3)) {
+            System.out.println("Quando a esposa possui uma criança e a qualidade de vida é média ou regular: ");
+            System.out.println("Método da adaptação: " + retornaMetodo(metodo) + " Método sugerido: " + retornaMetodo(3));
+        }
+    }
+    
+    public static void retencao(ArrayList<Casos> listacasos, Casos novocaso, int metodo) {
+        Scanner scanner = new Scanner( System.in );
+        System.out.println("Com base nas informações geradas pelo programa, define o método:"
+                + "\n[1] Não utilizado\t[2] Utilizado por longo prazo\t[3] Utilizado por curto prazo");
+        metodo = scanner.nextInt();
+        
+        /* anexa metodo ao caso */
+        novocaso.setMetodo(metodo);
+        
+        /* insere caso na base */
+        listacasos.add(novocaso);
+    }
+    
+    public static String retornaMetodo(int metodo) {
+        String mensagem = null;
+        if (metodo == 1) {
+            mensagem = "Não utilizado";
+        }
+        if (metodo == 2) {
+            mensagem = "Utilizado por longo prazo.";
+        }
+        if (metodo == 3) {
+            mensagem = "Utilizado por curto prazo.";
+        }
+        return mensagem;
+    }
+    
+    public static String retornaResposta(ArrayList<Casos> listacasos, int caso) {
+        String mensagem = null;
+        if (listacasos.get(caso).getMetodo() == 1) {
+            mensagem = "Não utilizado.";
+        }
+        if (listacasos.get(caso).getMetodo() == 2) {
+            mensagem = "Utilizado por longo prazo.";
+        }
+        if (listacasos.get(caso).getMetodo() == 3) {
+            mensagem = "Utilizado por curto prazo.";
+        }
+        return mensagem;
+    }
     
     public static void ordenaVetor(ArrayList<Casos> listacasos, double[][] diferencas) {
         /* arrays sort */
