@@ -10,7 +10,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
@@ -28,6 +30,7 @@ public class Principal {
         String data = null;
         Casos novocaso = new Casos();
         long tempoinicial, tempofinal;
+        File file = new File("C:/Users/lennon/Documents/NetBeansProjects/TopicosInteligencia/src/RBC/cmc.data.txt");
         /* vetores fixos */
         ArrayList<Casos> listacasos = new ArrayList(); /* array de casos */
         double[][] diferencas = new double[max][2] /* vetor com somas das diferenças */;
@@ -37,17 +40,18 @@ public class Principal {
         listacasos.clear();
         
         /* funcoes */
-        lerArquivo(data, listacasos);
-        imprimeLista(listacasos);
+        lerArquivo(data, listacasos, file);
+        //imprimeLista(listacasos);
         insereCaso(novocaso);
             tempoinicial = System.currentTimeMillis(); /* captura tempo inicial */
-        //filtragem(listacasos, filtro);
+        filtragem(listacasos, filtro);
         comparaSequencial(listacasos, novocaso, diferencas); /* listacasos ou filtro */
             tempofinal = System.currentTimeMillis(); /* captura tempo final */
         ordenaVetor(listacasos, diferencas); /* listacasos ou filtro */
         listaSimilar(listacasos, diferencas, 10); /* tamanho da lista de similaridade */
         adaptacaoComposicional(listacasos, novocaso, diferencas, 10); /* tamanho da lista de similaridade */
         //casoAleatorio(listacasos, 10 /* quantidade de casos */);
+        salvaArquivo(novocaso, file);
         
         System.out.println("Tempo de execução da recuperação: " + (tempofinal - tempoinicial) + " milisegundos.");
     }
@@ -58,11 +62,10 @@ public class Principal {
         }
     }
     
-    public static void lerArquivo(String data, ArrayList<Casos> listacasos) throws FileNotFoundException, IOException {
-        File file = new File("C:/Users/lennon/Documents/NetBeansProjects/TopicosInteligencia/src/RBC/cmc.data.completa.txt");
+    public static void lerArquivo(String data, ArrayList<Casos> listacasos, File file) throws FileNotFoundException, IOException {
         BufferedReader reader;
-        try (FileReader fileReader = new FileReader(file)) {
-            reader = new BufferedReader(fileReader);
+        try (FileReader fr = new FileReader(file)) {
+            reader = new BufferedReader(fr);
             while((data = reader.readLine()) != null) {
                 /* imprime linha */
                 //System.out.println(data);
@@ -95,13 +98,27 @@ public class Principal {
         reader.close();
     }
     
+    public static void salvaArquivo(Casos novocaso, File file) throws FileNotFoundException, IOException {
+        /* declaracoes locais */
+        FileWriter fw = new FileWriter(file, true);
+        PrintWriter pw = new PrintWriter(fw);
+        
+        /* grava nova linha */
+        pw.println(novocaso);
+        
+        /* limpa escrita */
+        pw.flush();
+        /* fecha escrita */
+        pw.close();
+    }
+    
     public static void insereCaso(Casos novocaso) {
         /* declaracoes locais */
         Scanner scanner = new Scanner( System.in );
         boolean casook = false;
         
         do {
-            System.out.println("\nInsira um novo caso.\n");
+            System.out.println("Insira um novo caso.\n");
 
             System.out.println("Idade da esposa: ");
             novocaso.setIdademulher(scanner.nextInt());
@@ -226,41 +243,45 @@ public class Principal {
     }
     
     public static void revisao(Casos novocaso, int metodo) {
+        System.out.println("Com base em experiências passadas, o sistema sugeriu as seguintes regras: ");
         /* regra 01 */
         if (novocaso.getEmpregomulher() == 0 && novocaso.getNumerocriancas() >= 2) {
             System.out.println("Quando a esposa possui dois ou mais filhos e não está trabalhando: ");
-            System.out.println("Método da adaptação: " + retornaMetodo(metodo) + " Método sugerido: " + retornaMetodo(2));
+            System.out.println("Método da adaptação: " + retornaMetodo(metodo) + ". Método sugerido: " + retornaMetodo(2) + "\n");
         }
         /* regra 02 */
         if (novocaso.getEducacaomulher() >= 3 && novocaso.getEmpregomulher() == 1) {
             System.out.println("Quando a esposa possui educação regular ou alta e está trabalhando: ");
-            System.out.println("Método da adaptação: " + retornaMetodo(metodo) + " Método sugerido: " + retornaMetodo(1));
+            System.out.println("Método da adaptação: " + retornaMetodo(metodo) + ". Método sugerido: " + retornaMetodo(1) + "\n");
         }
         /* regra 03 */
         if (novocaso.getIdademulher() >= 30 && novocaso.getEducacaomulher()>= 3) {
             System.out.println("Quando a esposa tem mais do que 30 anos e educação regular ou alta: ");
-            System.out.println("Método da adaptação: " + retornaMetodo(metodo) + " Método sugerido: " + retornaMetodo(1));
+            System.out.println("Método da adaptação: " + retornaMetodo(metodo) + ". Método sugerido: " + retornaMetodo(1) + "\n");
         }
         /* regra 04 */
         if (novocaso.getEducacaohomem() <= 2 && novocaso.getEducacaomulher()<= 2) {
             System.out.println("Quando a educação do marido e da esposa são baixa ou média: ");
-            System.out.println("Método da adaptação: " + retornaMetodo(metodo) + " Método sugerido: " + retornaMetodo(2));
+            System.out.println("Método da adaptação: " + retornaMetodo(metodo) + ". Método sugerido: " + retornaMetodo(2) + "\n");
         }
         /* regra 05 */
         if (novocaso.getNumerocriancas() == 1 && (novocaso.getQualidadevida() >= 2 && novocaso.getQualidadevida() <= 3)) {
             System.out.println("Quando a esposa possui uma criança e a qualidade de vida é média ou regular: ");
-            System.out.println("Método da adaptação: " + retornaMetodo(metodo) + " Método sugerido: " + retornaMetodo(3));
+            System.out.println("Método da adaptação: " + retornaMetodo(metodo) + ". Método sugerido: " + retornaMetodo(3) + "\n");
         }
     }
     
     public static void retencao(ArrayList<Casos> listacasos, Casos novocaso, int metodo) {
         Scanner scanner = new Scanner( System.in );
-        System.out.println("Com base nas informações geradas pelo programa, define o método:"
+        System.out.println("Com base nessas informações, defina o método como:"
                 + "\n[1] Não utilizado\t[2] Utilizado por longo prazo\t[3] Utilizado por curto prazo");
         metodo = scanner.nextInt();
         
         /* anexa metodo ao caso */
         novocaso.setMetodo(metodo);
+        
+        /* imprime novo caso */
+        System.out.println("\nCaso inserido: " + novocaso);
         
         /* insere caso na base */
         listacasos.add(novocaso);
