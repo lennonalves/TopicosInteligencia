@@ -30,7 +30,7 @@ public class Principal {
         String data = null;
         Casos novocaso = new Casos();
         long tempoinicial, tempofinal;
-        File file = new File("C:/Users/lennon/Documents/NetBeansProjects/TopicosInteligencia/src/RBC/cmc.data.txt");
+        File file = new File("/media/lennonalves/LENNONMKT/bakcup_temp/NetBeansProjects/TopicosInteligencia/src/RBC/cmc.data.txt");
         /* vetores fixos */
         ArrayList<Casos> listacasos = new ArrayList(); /* array de casos */
         double[][] diferencas = new double[max][2] /* vetor com somas das diferenças */;
@@ -44,7 +44,7 @@ public class Principal {
         //imprimeLista(listacasos);
         insereCaso(novocaso);
             tempoinicial = System.currentTimeMillis(); /* captura tempo inicial */
-        filtragem(listacasos, filtro);
+        //filtragem(listacasos, filtro);
         comparaSequencial(listacasos, novocaso, diferencas); /* listacasos ou filtro */
             tempofinal = System.currentTimeMillis(); /* captura tempo final */
         ordenaVetor(listacasos, diferencas); /* listacasos ou filtro */
@@ -210,7 +210,7 @@ public class Principal {
         System.out.println("Método contraceptivo: " + retornaResposta(listacasos, (int) diferencas[0][0]) + "\n");
         for (int i = 1; i < tamanho; i++) {
             System.out.println("Caso [" + (int) diferencas[i][0] + "]: " + diferencas[i][1]);
-            System.out.println("Método contraceptivo: " + retornaResposta(listacasos, (int) diferencas[0][0]) + "\n");
+            System.out.println("Método contraceptivo: " + retornaResposta(listacasos, (int) diferencas[i][0]) + "\n");
         }
     }
     
